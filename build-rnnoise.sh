@@ -55,7 +55,7 @@ function build_rnnoise() {
     -s MALLOC=emmalloc \
     -s SINGLE_FILE=1 \
     -s STACK_SIZE=200KB \
-    -s ENVIRONMENT=web \
+    -s ENVIRONMENT=web,worker \
     -s MODULARIZE=1 \
     -s EXPORT_ES6=1 \
     -s EXPORTED_RUNTIME_METHODS=HEAPF32 \
