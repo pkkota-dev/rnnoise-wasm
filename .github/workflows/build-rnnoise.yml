@@ -1,0 +1,44 @@
+name: Build and auto-commit rnnoise wasm
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Emscripten
+        uses: mymindstorm/setup-emscripten@v13
+        with:
+          version: 4.0.8
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake libtool pkg-config git
+
+      - name: Make build script executable
+        run: chmod +x build-rnnoise.sh
+
+      - name: Build rnnoise WASM
+        run: ./build-rnnoise.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rnnoise_wasm_js
+          path: src/rnnoise_wasm.js
+
+      - name: Commit and push updated rnnoise_wasm.js
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update rnnoise_wasm.js [auto build]"
+          file_pattern: src/rnnoise_wasm.js
+          branch: ${{ github.ref }}
