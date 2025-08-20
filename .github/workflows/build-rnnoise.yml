@@ -1,4 +1,4 @@
-name: Build and auto-commit rnnoise wasm
+name: Build and auto-commit rnnoise wasm, types, and minified JS
 
 on:
   workflow_dispatch:
@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y autoconf automake libtool pkg-config git
+          sudo apt-get install -y autoconf automake libtool pkg-config git nodejs npm
 
       - name: Make build script executable
         run: chmod +x build-rnnoise.sh
@@ -30,15 +30,35 @@ jobs:
       - name: Build rnnoise WASM
         run: ./build-rnnoise.sh
 
-      - name: Upload artifact
+      - name: Generate TypeScript definitions
+        # Replace with your actual type generation command(s)
+        run: |
+          # Example: using a custom script or tool
+          # node scripts/gen-dts.js
+          # For demonstration, touch files if not present
+          touch src/rnnoise_wasm.d.ts
+          touch src/rnnoise.d.ts
+
+      - name: Minify rnnoise_wasm.js
+        run: |
+          if [ -f src/rnnoise_wasm.js ]; then
+            npx terser src/rnnoise_wasm.js -c -m -o src/rnnoise.js
+          fi
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: rnnoise_wasm_js
-          path: src/rnnoise_wasm.js
+          name: rnnoise_artifacts
+          path: |
+            src/rnnoise_wasm.d.ts
+            src/rnnoise.d.ts
+            src/rnnoise.js
 
-      - name: Commit and push updated rnnoise_wasm.js
+      - name: Auto-commit updated artifacts
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: update rnnoise_wasm.js [auto build]"
-          file_pattern: src/rnnoise_wasm.js
-          branch: ${{ github.ref }}
+          commit_message: "chore: update rnnoise artifacts [auto build]"
+          file_pattern: |
+            src/rnnoise_wasm.d.ts
+            src/rnnoise.d.ts
+            src/rnnoise.js
